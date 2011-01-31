@@ -93,11 +93,8 @@ class GoogleCalendar:
         self.cal_client.source = 'Google-Calendar_Python_Sample-1.0'
         self.cal_client.ProgrammaticLogin()
 
-
         #'2010-08-29T17:58:45.000Z'
     def add_event(self, title, content, where, start_time, end_time):
-        print start_time
-        print end_time
         event = gdata.calendar.CalendarEventEntry()
         event.title = atom.Title(text=title)
         event.content = atom.Content(text=content)
@@ -115,7 +112,7 @@ class GoogleCalendar:
         return None
 
     def Run(self):
-        cal = self._get_calendar("Akademiska Kapellet")
+        cal = self._get_calendar("Kapellet")
         if cal == None:
             print "Calendar not found, creating a new ..."
         else:
@@ -169,16 +166,20 @@ def main():
             year = event[0][0]
             month = event[0][1]
             day = event[0][2]
-            times = event[1].split(" - ")          
-            start_hour = int(times[0].split(".")[0])
-            start_minute = int(times[0].split(".")[1])
-            end_hour = int(times[1].split(".")[0])
-            end_minute = int(times[1].split(".")[1])
+
+	    # TODO: Handle the exception that we get for the last entries in the calendar
+            try:
+                times = event[1].split(" - ")          
+                start_hour = int(times[0].split(".")[0])
+                start_minute = int(times[0].split(".")[1])
+                end_hour = int(times[1].split(".")[0])
+                end_minute = int(times[1].split(".")[1])
+            except:
+                pass
      
-	
-          
-            start = datetime(year, month, day, start_hour%24, start_minute, 0, tzinfo=cet)
-            end = datetime(year, month, day, end_hour%24, end_minute, 0, tzinfo=cet)
+            # TODO: Doing mod 24 to avoid errors, should mark event as whole day
+            start = datetime(year, month, day, start_hour%24, start_minute, 0, tzinfo=tz.gettz('CET'))
+            end = datetime(year, month, day, end_hour%24, end_minute, 0, tzinfo=tz.gettz('CET'))
         
             title = event[2]
             where = "Uppsala"
@@ -187,6 +188,8 @@ def main():
                 content += s + "\n"
             utc = tz.gettz('UTC')
             cal.add_event(title, content, where, start.astimezone(utc).isoformat(), end.astimezone(utc).isoformat())
+
+            print "Adding event starting", start.astimezone(utc).isoformat(), "and ending", end.astimezone(utc).isoformat()
 
 if __name__ == '__main__':
   main()
